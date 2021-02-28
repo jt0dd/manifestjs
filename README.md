@@ -1,22 +1,22 @@
-# Comparison:
-To compare Manifest to Vue.js, React.js, and Angular.js, let's use each to code a working replica of the IOS Messenger UI with a websocket setup of your choice, ignoring back-end code.
+My focus in building Manifest.js (which is under 500 lines of code) was to:
 
-At the end we'll compare character count as well as coupling patterns present in each code set. Our goal is components of the app loosely coupled to eachother but a strong coupling between the model and view, with as little work as possible while maintaining intuitive, self-documenting code.
+- avoid the need to work with any HTML or CSS files,
+- write any HTML multiline strings within the JS,
+- tightly couple each element of the UI with the code dictating its style and behavior,
+- looseley coupled modular design overall
+
+## Why another web app framework?
+
+Rather than explain the difference, I'll show why I felt this tool was more to my preference for building single-page web applications.
+Consider this iOS Messenger clone:
 
 ![iOS messenger](https://www.iosapptemplates.com/wp-content/uploads/2018/09/chat-iphone-app-template-firebase-swift.png)
 
-# Details:
+To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and **Angular.js**, here are working replicas of this UI built with each:
 
-  **Resolution:** 2,340x1,080 (iPhone 12 Mini)
-  **Server Code:** Ignored
-  **Character Count:**
-    **CSS:** Included
-    **HTML:** Included
-    **Images:** Provided
+- Vue.js
 
-Vue.js:
+- React.js
 
-React.js:
-
-Angular.js:
+- Angular.js
 
