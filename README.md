@@ -20,3 +20,15 @@ To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and *
 
 - Angular.js
 
+But first, basic usage:
+
+Each Element is a wrapper for a DOM element. It provides easy contro over styles, behaviors, event handling, text, and anything you can change about a DOM element.
+
+`new Element(<tag name>, { settings })`
+
+Each element is attached to another with `append` or `appendTo`.
+
+`new Element(<tag name>, { settings }).appendTo(<DOM Element> or another <Element>)`
+
+Within the `settings` we fully control the DOM elment:
+
