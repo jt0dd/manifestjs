@@ -7,7 +7,7 @@ My focus in building Manifest.js (which is under 500 lines of code) was to:
 
 ## Why another web app framework?
 
-Rather than explain the difference, I'll show why I felt this tool was more to my preference for building single-page web applications.
+Rather than explain the difference, I'll show why I felt this framework design was more to my preference for building single-page web applications.
 Consider this iOS Messenger clone:
 
 ![iOS messenger](https://www.iosapptemplates.com/wp-content/uploads/2018/09/chat-iphone-app-template-firebase-swift.png)
