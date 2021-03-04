@@ -44,7 +44,7 @@ Within the `settings` we fully control the DOM elment, with intuitive controls s
 And app helper controls such as:
 
 - `data`: Simply a preferred place to hold data associated with an Element's behavior.
-- `traits` Properties will be inherited by all decendants of the Element.
+- `traits` Like the `data` property, but passed down by reference to all decendants of the Element
 - `actions` Preferred place to hold repeatable functions triggered by the Element's event listener
 - `childClasses`: Define CSS classes applicable to children of an Element.
 
