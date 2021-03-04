@@ -3,10 +3,10 @@
 My focus in building Manifest.js (which is under 500 lines of code) was to:
 
 - Tightly couple each element of the UI with the code dictating its style and behavior,
-- Looseley coupled modular design overall
+- Looseley coupled modular design overall,
 - Avoid the need to manage multiple HTML or CSS files,
 - No HTML multiline strings within the JS,
-- No weird HTML JavaScript hybrids involved
+- No weird HTML JavaScript hybrids involved,
 - Just JavaScript.
 
 ## Why another web app framework?
