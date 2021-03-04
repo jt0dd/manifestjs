@@ -43,7 +43,7 @@ Within the `settings` we fully control the DOM elment, with intuitive controls s
 
 And app helper controls such as:
 
-- `data`
+- `data`: Simply a preferred place to hold data associated with an Element's behavior.
 - `traits`
 - `actions`
 - `childClasses`
@@ -69,19 +69,13 @@ And to put it all together:
 ```
 {
     text: "Hello World Manifest.js!",
-    innerHTML: false,
     classes: ["app-wrapper"],
-    attributes: {
-      "href": "https://github.com/jt0dd/manifestjs/edit/main/README.md"
-    },
     styles: {
       "background-color": "#272830"
     },
-    id: false,
     actions: {
       doStuff: self = {}
     },
-    data: {}, // Simply a preferred place to hold data associated with an Element's behavior.
     childClasses: { // Design sets of CSS styles that only children of this element can assign
       "button": {
         "padding": "5px",
