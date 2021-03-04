@@ -30,5 +30,40 @@ Each element is attached to another with `append` or `appendTo`.
 
 `new Element(<tag name>, { settings }).appendTo(<DOM Element> or another <Element>)`
 
-Within the `settings` we fully control the DOM elment:
+Within the `settings` we fully control the DOM elment, the complete list of controllable properties including:
 
+```
+{
+    // The intuitive (optional) DOM traits should be apparent:
+    text: "Hello World Manifest.js!",
+    innerHTML: false,
+    classes: ["app-wrapper"],
+    attributes: {
+      "href": "https://github.com/jt0dd/manifestjs/edit/main/README.md"
+    },
+    styles: {
+      "background-color": "#272830"
+    },
+    id: false,
+    
+    // With some application helper traits, including:
+    actions: {
+      doStuff: self = {}
+    },
+    data: {}, // Simply a preferred place to hold data associated with an Element's behavior.
+    childClasses: { // Desine sets of CSS styles that only children of this element can assign, which avoids the issue of CSS namespacing
+      "button": {
+        "padding": "5px",
+        "border-style": "solid",
+        "border-width": "1px",
+        "color": "gray"
+      }
+    }, 
+    traits: { // like the data property, but passed down by reference to all children of the Element
+      publisher: new Publisher() // built in by default to the first Element initiated for easy communication between Elements anywhere in the app
+    },
+    ready: false
+}
+```
+
+So simply to define and style an element
