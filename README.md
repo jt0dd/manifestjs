@@ -51,7 +51,7 @@ Within the `settings` we fully control the DOM elment, the complete list of cont
       doStuff: self = {}
     },
     data: {}, // Simply a preferred place to hold data associated with an Element's behavior.
-    childClasses: { // Desine sets of CSS styles that only children of this element can assign, which avoids the issue of CSS namespacing
+    childClasses: { // Design sets of CSS styles that only children of this element can assign
       "button": {
         "padding": "5px",
         "border-style": "solid",
@@ -60,7 +60,7 @@ Within the `settings` we fully control the DOM elment, the complete list of cont
       }
     }, 
     traits: { // like the data property, but passed down by reference to all children of the Element
-      publisher: new Publisher() // built in by default to the first Element initiated for easy communication between Elements anywhere in the app
+      publisher: new Publisher() // built in by default for easy communication between Elements anywhere in the app
     },
     ready: false
 }
