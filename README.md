@@ -106,3 +106,29 @@ new Element("div", {
     }
 }).appendTo(document.body)
 ```
+
+## Methods
+
+Each element additionally has methods to make dynamic modification simple:
+
+- `preload`
+- `use`
+- `addEventListener`
+- `on`
+- `scrollTo`
+- `hasClass`
+- `getDims`
+- `setData`
+- `getData`
+- `delete`
+- `style`
+- `getStyle`
+- `clearStyle`
+- `setHTML`
+- `setText`
+- `setAttribute`
+- `addClass`
+- `removeClass`
+- `select`
+- `append`
+- `appendTo`
