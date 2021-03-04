@@ -70,7 +70,7 @@ new Element(<tag name>, {
 And to put it all together:
 
 ```
-{
+new Element("div", {
     text: "Hello World Manifest.js!",
     classes: ["app-wrapper"],
     styles: {
@@ -86,17 +86,21 @@ And to put it all together:
         "border-width": "1px",
         "color": "gray"
       }
-    }, 
-    traits: { // like the data property, but passed down by reference to all children of the Element
+    },
+    data: {
+        maybe: "Do we really need so many buttons?"
+    },
+    traits: {
       publisher: new Publisher() // built in by default for easy communication between Elements anywhere in the app
     },
     ready: self => {
         self.on("click", () => {
             // do stuff
         })
-        for (let i = 0; i < 10; i++) {
-            self.append(new Element("div", { classes: ["button"], text: "Hello back!" }))
+        const parts = self.data.maybe.split(" ")
+        for (let part in parts) {
+            self.append(new Element("div", { classes: ["button"], text: part }))
         }
     }
-}
+}).appendTo(document.body)
 ```
