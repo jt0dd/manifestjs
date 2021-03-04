@@ -12,7 +12,7 @@ Consider this iOS Messenger clone:
 
 ![iOS messenger](https://www.iosapptemplates.com/wp-content/uploads/2018/09/chat-iphone-app-template-firebase-swift.png)
 
-To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and **Angular.js**, here are working replicas of this UI built with each:
+To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and **Angular.js**, above you'll find working replicas of this UI built with each:
 
 - Vue.js
 
@@ -20,9 +20,11 @@ To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and *
 
 - Angular.js
 
+- Manifest.js
+
 But first, basic usage:
 
-Each Element is a wrapper for a DOM element. It provides easy contro over styles, behaviors, event handling, text, and anything you can change about a DOM element.
+Each Element is a wrapper for a DOM element. It provides straight-forward control over styles, behaviors, event handling, text, and anything you can change about a DOM element.
 
 `new Element(<tag name>, { settings })`
 
@@ -66,7 +68,6 @@ And to put it all together:
 
 ```
 {
-    // The intuitive (optional) DOM traits should be apparent:
     text: "Hello World Manifest.js!",
     innerHTML: false,
     classes: ["app-wrapper"],
@@ -77,8 +78,6 @@ And to put it all together:
       "background-color": "#272830"
     },
     id: false,
-    
-    // With some application helper traits, including:
     actions: {
       doStuff: self = {}
     },
@@ -94,8 +93,13 @@ And to put it all together:
     traits: { // like the data property, but passed down by reference to all children of the Element
       publisher: new Publisher() // built in by default for easy communication between Elements anywhere in the app
     },
-    ready: false
+    ready: self => {
+        self.on("click", () => {
+            // do stuff
+        })
+        for (let i = 0; i < 10; i++) {
+            self.append(new Element("div", { ... }))
+        }
+    }
 }
 ```
-
-So simply to define and style an element
