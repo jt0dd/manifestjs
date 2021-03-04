@@ -30,7 +30,39 @@ Each element is attached to another with `append` or `appendTo`.
 
 `new Element(<tag name>, { settings }).appendTo(<DOM Element> or another <Element>)`
 
-Within the `settings` we fully control the DOM elment, the complete list of controllable properties including:
+Within the `settings` we fully control the DOM elment, with intuitive controls such as:
+
+- `text`
+- `innerHTML`
+- `classes`
+- `attributes`
+- `styles`
+- `id`
+
+And app helper controls such as:
+
+- `data`
+- `traits`
+- `actions`
+- `childClasses`
+- `ready`
+
+With `ready` kicking off the behavior of the Element, including event emitters & listeners, and often appendage of child elements.
+
+Like so:
+
+```
+new Element(<tag name>, {
+    ready: self => {
+        self.on("click", () => {
+            // do something
+        })
+        self.append(new Element("div", { settings }))
+    }
+})
+```
+
+And to put it all together:
 
 ```
 {
