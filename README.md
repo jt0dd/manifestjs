@@ -95,7 +95,7 @@ And to put it all together:
             // do stuff
         })
         for (let i = 0; i < 10; i++) {
-            self.append(new Element("div", { ... }))
+            self.append(new Element("div", { classes: ["button"], text: "Hello back!" }))
         }
     }
 }
