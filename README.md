@@ -1,3 +1,5 @@
+## Manifest.js
+
 My focus in building Manifest.js (which is under 500 lines of code) was to:
 
 - avoid the need to work with any HTML or CSS files,
@@ -22,7 +24,9 @@ To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and *
 
 - Manifest.js
 
-But first, basic usage:
+But first...
+
+## Basic Usage
 
 Each Element is a wrapper for a DOM element. It provides straight-forward control over styles, behaviors, event handling, text, and anything you can change about a DOM element.
 
