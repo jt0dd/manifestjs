@@ -44,12 +44,11 @@ Within the `settings` we fully control the DOM elment, with intuitive controls s
 And app helper controls such as:
 
 - `data`: Simply a preferred place to hold data associated with an Element's behavior.
-- `traits`
-- `actions`
-- `childClasses`
-- `ready`
+- `traits` Properties will be inherited by all decendants of the Element.
+- `actions` Preferred place to hold repeatable functions triggered by the Element's event listener
+- `childClasses`: Define CSS classes applicable to children of an Element.
 
-With `ready` kicking off the behavior of the Element, including event emitters & listeners, and often appendage of child elements.
+With a final `ready` property kicking off the behavior of the Element, including event emitters & listeners, and often appendage of child elements.
 
 Like so:
 
@@ -76,7 +75,7 @@ And to put it all together:
     actions: {
       doStuff: self = {}
     },
-    childClasses: { // Design sets of CSS styles that only children of this element can assign
+    childClasses: {
       "button": {
         "padding": "5px",
         "border-style": "solid",
