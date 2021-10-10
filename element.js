@@ -1,400 +1,466 @@
-class Publisher {
-  constructor(socket) {
-    if (socket) this.socket = socket
-    this.events = {}
-    this.data = {}
-  }
-  on(command, func, socket = true) {
-    if (!this.events[command]) this.events[command] = []
-    this.events[command].push(func)
-    if (socket && this.socket) this.socket.on(command, func)
-  }
-  emit(command, data = {}, socket = false) {
-    if (this.events[command]) {
-      this.events[command].forEach(func => func(data))
+const { Publisher, Element } = (() => {
+  class Publisher {
+    constructor(socket) {
+      if (socket) this.socket = socket;
+      this.events = {};
+      this.data = {};
     }
-    if (socket && this.socket) this.socket.emit(command, data)
-  }
-}
-
-/**
- * Tests whether the argument is of type 'object' and not an array
- * @param {Object} obj - The variable to ensure
- * @return {boolean} - Whether or not the passed argument is a non-array object
- */
-function isObjNotArray(obj) {
-  return obj && typeof obj === 'object' && !Array.isArray(item)
-}
-
-/**
- * Classifies the argument as an Object or Array, or neither
- * @param {Object} obj - The variable to ensure
- * @return {string|boolean} - A string classfying the argument as 'obj' or 'arr', or false for neither
- */
-function isIterable(obj) {
-  let type = false
-  if (isObjNotArray(obj)) type = 'obj'
-  else if (Array.isArray(obj)) type = 'arr'
-  return type
-}
-
-/**
- * Recursively merge erge the contents of a source object into a target object including all iterable contents
- * @param {Object|Array} source - The Object or Array to be merged from
- * @param {Object|Array} target - The Object or Array to be merged into
- * @return {Object} - The recursively merged result of the contents of both objects
- */
-function mergeDeep(source, target) {
-  let allProps = [],
-    sourceProps, type, targetProps
-  if (isObjNotArray(source)) {
-    sourceProps = Object.keys(source)
-    type = 'obj'
-  } else if (Array.isArray(source)) {
-    sourceProps = source
-    type = 'arr'
-  } else {
-    return source
-  }
-  if (isObjNotArray(target)) {
-    targetProps = Object.keys(target)
-  } else if (Array.isArray(target)) {
-    targetProps = target
-  } else {
-    debugger
-    throw "target missing"
-  }
-  sourceProps.forEach(prop => {
-    allProps.push(prop)
-  })
-  targetProps.forEach(prop => {
-    allProps.push(prop)
-  })
-  allProps = [...new Set(allProps)]
-  let merged
-  if (type == 'obj') {
-    merged = {}
-  } else if (type == 'arr') {
-    merged = []
-  }
-  allProps.forEach(prop => {
-    if (type == "obj") {
-      if (source[prop]) {
-        if (isIterable(source[prop])) {
-          if (isIterable(target[prop])) {
-            merged[prop] = mergeDeep(source[prop], target[prop])
-          } else merged[prop] = source[prop]
-        } else {
-          merged[prop] = source[prop]
+    on(command, func, settings = {
+      debug: false
+    }) {
+      const socket = settings.socket;
+      const debug = settings.debug;
+      if (!this.events[command])
+        this.events[command] = [];
+      this.events[command].push(func);
+      if (debug) {
+        console.log("listening for event: " + command + " [ socket forwarding = " + socket + " ]")
+      }
+      if (socket && this.socket) {
+        this.socket.on(command, (data) => {
+          func(data);
+        });
+      }
+    }
+    emit(command, data = {}, settings = {
+      socket: true,
+      debug: false
+    }) {
+      const socket = settings.socket
+      const debug = settings.debug
+      if (socket && this.socket) {
+        if (debug) {
+          console.log('event emitted: ' + command + ' payload: ' + data + ' [ socket forwarding = ' + socket + ' ]')
         }
-      } else {
-        if (source[prop] !== undefined) {
-          merged[prop] = source[prop]
-        } else {
-          merged[prop] = target[prop]
+        this.socket.emit(command, data)
+      } else if (this.events[command]) {
+        if (debug) {
+          console.log('event emitted: ' + command + ' payload: ' + data + ' [ socket forwarding = ' + socket + ' ]')
         }
+        this.events[command].forEach(func => {
+          func(data)
+        })
       }
+    }
+  }
+
+  function isObjNotArray(obj) {
+    return obj && typeof obj == 'object' && !Array.isArray(obj)
+  }
+
+  function isIterable(obj) {
+    let type = false
+    if (isObjNotArray(obj)) type = 'obj'
+    else if (Array.isArray(obj)) type = 'arr'
+    return type
+  }
+
+  function mergeDeep(source, target) {
+    if (source === undefined) return target
+    if (target === undefined) return source
+    let allProps = [], sourceProps, targetProps, sourceType, targetType, type, merged, iterable, filler
+    sourceType = isIterable(source)
+    targetType = isIterable(target)
+    type = sourceType
+    if (source && target && sourceType != targetType) {
+      throw 'source, target type mismatch'
+    }
+    if (sourceType == 'obj') {
+      sourceProps = Object.keys(source)
+    } else if (sourceType == 'arr') {
+      sourceProps = source
     } else {
-      let iterable = isIterable(prop)
-      if (iterable) {
-        let filler
-        if (iterable == "obj") filler = {}
-        else if (iterable == "arr") filler = []
-        merged.push(mergeDeep(prop, filler))
-      } else {
-        merged.push(prop)
-      }
+      return source
     }
-  })
-  return merged
-}
-
-/**
- * Search the full Manifest.js heirarchy of ElementWrappers for an ElementWrapper with a matching classname
- * @param {Object} elementWrapper - The Manifest.js ElementWrapper to search
- * @param {string} selector - The classname to search for
- * @param {Object} resultTarget - A storage object to accumulate results upon rcursive calls of the function
- * @param {Object} downward - Whether or not to search child ElementWrappers (used to prevent circular searching)
- * @return {void} - The results have been passed by reference to the resultTarget object
- */
-const searchTree = (elementWrapper, selector, resultTarget, downward = false) => {
-  if (elementWrapper.parentWrapper && !downward) {
-    searchChildren(elementWrapper, selector, resultTarget)
-    if (!resultTarget.selection) searchTree(elementWrapper.parentWrapper, selector, resultTarget)
-  } else {
-    searchChildren(elementWrapper, selector, resultTarget)
-  }
-}
-
-/**
- * Search the Manifest.js heirarchy of child ElementWrappers for an ElementWrapper with a matching classname
- * @param {Object} elementWrapper - The Manifest.js ElementWrapper to search
- * @param {string} selector - The classname to search for
- * @param {Object} resultTarget - A storage object to accumulate results upon rcursive calls of the function
- * @return {void} - The results have been passed by reference to the resultTarget object
- */
-const searchChildren = (elementWrapper, selector, resultTarget) => {
-  let children = elementWrapper.children
-  if (children.length > 0) {
-    for (let i = 0; i < children.length; i++) {
-      const childWrapper = children[i]
-      let idSelector
-      if (childWrapper.id) {
-        const parts = childWrapper.id.split("#")
-        idSelector = parts[parts.length - 1]
-      }
-      if (idSelector === selector || childWrapper.selector === selector) {
-        resultTarget.selection = childWrapper
-      } else {
-        searchTree(childWrapper, selector, resultTarget, true)
-      }
-    }
-  }
-}
-
-/**
- * Handles application of new settings and defaults into a Manifest.js Element
- * @param {Object} newSettings - The Manifest.js ElementWrapper settings to apply
- * @return {Object} - The applied context is returned for method chaining
- */
-const applySettings = function (newSettings) {
-  const settings = mergeDeep(newSettings, {
-    text: false,
-    innerHTML: false,
-    classes: [],
-    actions: {},
-    data: {},
-    attributes: {},
-    styles: {},
-    cssClasses: {},
-    traits: {},
-    id: false,
-    callback: false,
-    ready: false,
-  })
-  if (settings.id) {
-    this.element.id = settings.id
-    this.selector = settings.id
-  }
-  if (settings.text) this.element.textContent = settings.text
-  if (settings.innerHTML) this.element.innerHTML = settings.innerHTML
-  if (settings.selector) {
-    this.selector = settings.selector
-    this.selectors[settings.selector] = this
-  }
-  this.classes = []
-  settings.classes.forEach(className => {
-    this.element.classList.add(className)
-    this.classes.push(className)
-  })
-  Object.keys(settings.attributes).forEach(attributeName => this.element.setAttribute(attributeName, settings.attributes[attributeName]))
-  Object.keys(settings.styles).forEach(styleName => this.element.style[styleName] = settings.styles[styleName])
-  Object.keys(settings.data).forEach(propertyName => this.data[propertyName] = settings.data[propertyName])
-  Object.keys(settings.traits).forEach(propertyName => this.traits[propertyName] = settings.traits[propertyName])
-  Object.keys(settings.cssClasses).forEach(propertyName => this.cssClasses[propertyName] = settings.cssClasses[propertyName])
-  Object.keys(settings.actions).forEach(actionName => this.actions[actionName] = (...rest) => {
-    settings.actions[actionName](this, ...rest)
-    return this
-  })
-  if (settings.callback) this.callback = settings.callback
-  if (settings.ready) {
-    if (typeof this.ready === "function") {
-      const originalReadyFunc = this.ready
-      this.ready = []
-      this.ready.push(originalReadyFunc)
-      this.ready.push(settings.ready)
+    if (targetType == 'obj') {
+      targetProps = Object.keys(target)
+    } else if (targetType = 'arr') {
+      targetProps = target;
     } else {
-      this.ready = settings.ready
+      throw 'mergeDeep target must be an Object or Array'
     }
-  }
-}
-
-module.exports = class {
-  constructor(tag, settings) {
-    this.readyComplete = new Set()
-    this.settings = settings
-    this.children = []
-    this.data = {}
-    this.actions = {}
-    this.traits = {}
-    this.selectors = {}
-    this.styles = {}
-    this.cssClasses = {}
-    this.selectionCache = {}
-    this.element = document.createElement(tag)
-    applySettings.apply(this, [settings])
-  }
-  preload(url) {
-    const arr = []
-    if (!Array.isArray(url)) {
-      arr.push(url)
-    }
-    arr.forEach(url => {
-      const img = new Image()
-      img.src = url
+    sourceProps.forEach(prop => {
+      allProps.push(prop);
     })
+    targetProps.forEach(prop => {
+      allProps.push(prop);
+    })
+    allProps = [...new Set(allProps)]
+    if (type == 'obj') {
+      merged = {}
+    } else if (type == 'arr') {
+      merged = []
+    }
+    allProps.forEach(prop => {
+      if (type == 'obj') {
+        if (source[prop]) {
+          if (isIterable(source[prop])) {
+            if (isIterable(target[prop])) {
+              merged[prop] = mergeDeep(source[prop], target[prop])
+            } else {
+              merged[prop] = source[prop]
+            }
+          } else {
+            merged[prop] = source[prop]
+          }
+        } else {
+          if (source[prop] !== undefined) {
+            merged[prop] = source[prop]
+          } else {
+            merged[prop] = target[prop]
+          }
+        }
+      } else {
+        iterable = isIterable(prop)
+        if (iterable) {
+          if (iterable == 'obj') {
+            filler = {}
+          } else if (iterable == 'arr') {
+            filler = []
+          }
+          merged.push(mergeDeep(prop, filler))
+        } else {
+          merged.push(prop)
+        }
+      }
+    })
+    return merged
   }
-  use(settings) {
-    let mergedSettings = mergeDeep(settings, this.settings)
-    applySettings.apply(this, [mergedSettings])
-    if (settings.callback) settings.callback(this)
-    return this
-  }
-  addEventListener(event, func) {
-    this.element.addEventListener(event, func)
-  }
-  scrollTo(num) {
-    if (num) this.element.scrollTop = num
-    else this.element.scrollIntoView()
-  }
-  hasClass(className) {
-    return this.element.classList.contains(className)
-  }
-  getDims() {
-    return this.element.getBoundingClientRect()
-  }
-  getData() {
-    return this.data
-  }
-  delete() {
-    if (this.parent.contains(this.element)) {
-      this.parent.removeChild(this.element)
+
+  function searchTree(elementWrapper, selector, resultTarget, downward = false) {
+    if (elementWrapper.parentWrapper && !downward) {
+      searchChildren(elementWrapper, selector, resultTarget)
+      if (!resultTarget.selection) {
+        searchTree(elementWrapper.parentWrapper, selector, resultTarget)
+      }
+    } else {
+      searchChildren(elementWrapper, selector, resultTarget)
     }
   }
-  style(styleName, value) {
-    this.element.style[styleName] = value
+
+  function searchChildren(elementWrapper, selector, resultTarget) {
+    let children = elementWrapper.children, childWrapper, idSelector, parts
+    if (children.length > 0) {
+      for (let i = 0; i < children.length; i++) {
+        childWrapper = children[i]
+        if (childWrapper.id) {
+          parts = childWrapper.id.split("#")
+          idSelector = parts[parts.length - 1]
+        }
+        if (idSelector = selector || childWrapper.selector === selector) {
+          resultTarget.selection = childWrapper
+        } else {
+          searchTree(childWrapper, selector, resultTarget, true)
+        }
+      }
+    }
   }
-  getStyle(styleName) {
-    return this.element.style[styleName]
+
+  function applySettings(newSettings) {
+    const defaults = {
+      text: this.text === undefined ? false : this.text,
+      innerHTML: this.innerHTML === undefined ? false : this.innerHTML,
+      classes: this.classes === undefined ? [] : this.classes,
+      actions: this.actions === undefined ? {} : this.actions,
+      data: this.data === undefined ? {} : this.data,
+      attributes: this.attributes === undefined ? {} : this.attributes,
+      styles: this.styles === undefined ? {} : this.styles,
+      cssClasses: this.cssClasses === undefined ? {} : this.cssClasses,
+      traits: this.traits === undefined ? {} : this.traits,
+      id: this.id === undefined ? false : this.id,
+      callback: this.callback === undefined ? false : this.callback,
+      ready: this.ready === undefined ? false : this.ready
+    }
+    const settings = mergeDeep(newSettings, defaults)
+    if (settings === undefined) {
+      throw "bad merge"
+    }
+    if (settings.id) {
+      this.element.id = settings.id
+      this.selector = settings.id
+    }
+    if (settings.text) this.element.textContent = settings.text
+    if (settings.name) this.element.setAttribute('name', settings.name)
+    if (settings.innerHTML) this.element.innerHTML = settings.innerHTML
+    if (settings.selector) {
+      this.selector = settings.selector
+      this.selectors[settings.selector] = this
+    }
+    this.classes = []
+    settings.classes.forEach(className => {
+      this.element.classList.add(className)
+      this.classes.push(className)
+    })
+    Object.keys(settings.attributes).forEach(attributeName => this.element.setAttribute(attributeName, settings.attributes[attributeName]))
+    Object.keys(settings.styles).forEach(styleName => this.element.style[styleName] = settings.styles[styleName])
+    Object.keys(settings.data).forEach(propertyName => this.data[propertyName] = settings.data[propertyName])
+    Object.keys(settings.traits).forEach(propertyName => this.traits[propertyName] = settings.traits[propertyName])
+    Object.keys(settings.cssClasses).forEach(propertyName => this.cssClasses[propertyName] = settings.cssClasses[propertyName])
+    if (!this.boundActions) this.boundActions = {}
+    Object.keys(settings.actions).forEach(actionName => {
+      if (!this.boundActions[actionName]) {
+        this.boundActions[actionName] = true
+        this.actions[actionName] = (...rest) => {
+          return settings.actions[actionName](this, ...rest)
+        }
+      }
+    })
+    if (settings.callback) this.callback = settings.callback
+    if (settings.ready) {
+      if (typeof this.ready === "function") {
+        const originalReadyFunc = this.ready
+        this.ready = []
+        this.ready.push(originalReadyFunc)
+        this.ready.push(settings.ready)
+      } else {
+        this.ready = settings.ready
+      }
+    }
   }
-  clearStyle(styleName) {
-    this.element.style[styleName] = ""
-  }
-  updateHTML(html) {
-    this.element.innerHTML = html
-  }
-  updateText(text) {
-    this.element.textContent = text
-  }
-  updateAttribute(attributeName, attributeContent) {
-    this.element.setAttribute(attributeName, attributeContent)
-  }
-  addClass(className) {
-    this.classes.push(className)
-    this.element.classList.add(className)
-    const cssClass = this.cssClasses[className]
-    if (cssClass) {
-      Object.keys(cssClass).forEach(cssProp => {
-        this.style(cssProp, cssClass[cssProp])
+
+  let elemIndex = 0
+
+  class Element {
+    constructor(tag, settings) {
+      this.elemID = elemIndex
+      elemIndex++
+      this.readyComplete = new Set()
+      this.settings = settings
+      this.children = []
+      this.data = {}
+      this.actions = {}
+      this.traits = {}
+      this.selectors = {}
+      this.styles = {}
+      this.cssClasses = {}
+      this.selectionCache = {}
+      this.cachedStyle = {}
+      this.element = document.createElement(tag)
+      if (Array.isArray(settings)) {
+        settings.forEach(obj => {
+          applySettings.apply(this, [obj])
+        })
+      } else {
+        applySettings.apply(this, [settings])
+      }
+    }
+    preload(url) {
+      const arr = []
+      if (!Array.isArray(url)) {
+        arr.push(url)
+      }
+      arr.forEach(url => {
+        const img = new Image()
+        img.src = url
       })
-    } else {
-      console.log("this[", this, "] class list[", this.cssClasses, "] missing added class:", className)
     }
-  }
-  removeClass(className) {
-    this.classes = this.classes.filter(e => e !== className)
-    this.element.classList.remove(className)
-    const cssClass = this.cssClasses[className]
-    Object.keys(cssClass).forEach(cssProp => {
-      this.style(cssProp, "")
-    })
-    Object.keys(this.cssClasses).forEach(className => {
+    use(settings) {
+      let mergedSettings = mergeDeep(settings, this.settings)
+      applySettings.apply(this, [mergedSettings])
+      if (settings.callback) settings.callback(this)
+      return this
+    }
+    scrollTo(num = false) {
+      if (num) this.element.scrollTop = num
+      else this.element.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+    }
+    focus() {
+      this.element.focus()
+    }
+    hasClass(className) {
+      return this.element.classList.contains(className)
+    }
+    getDims() {
+      return this.element.getBoundingClientRect()
+    }
+    getData(key = False) {
+      if (key) return this.data[key]
+      else return this.data
+    }
+    delete() {
+      if (this.parent) {
+        if (this.parent.contains(this.element)) {
+          this.parent.removeChild(this.element)
+        }
+      } else {
+        document.body.removeChild(this.element)
+      }
+    }
+    empty() {
+      this.children.forEach(child => {
+        child.delete()
+      })
+    }
+    style(styleName, value) {
+      this.element.style[styleName] = value
+    }
+    setStyles(styles) {
+      Object.keys(styles).forEach(key => {
+        this.style(key, styles[key])
+      })
+    }
+    getStyle(styleName) {
+      return this.element.style[styleName]
+    }
+    cacheStyle(styleName) {
+      this.cachedStyle[styleName] = this.getStyle(styleName)
+    }
+    restoreStyle(styleName) {
+      this.element.style[styleName] = this.cachedStyle[styleName]
+    }
+    clearStyle(styleName) {
+      this.element.style[styleName] = ''
+    }
+    setHTML(html) {
+      this.element.innerHTML = html
+    }
+    setText(text) {
+      this.element.textContent = text
+    }
+    getText() {
+      return this.element.textContent
+    }
+    setAttribute(attributeName, attributeContent) {
+      this.element.setAttribute(attributeName, attributeContent)
+    }
+    getAttribute(attributeName) {
+      return this.element.getAttribute(attributeName)
+    }
+    getValue() {
+      return this.element.value
+    }
+    setValue(value) {
+      this.element.value = value
+    }
+    addClass(className) {
+      this.classes.push(className)
+      this.element.classList.add(className)
       const cssClass = this.cssClasses[className]
-      if (this.classes.includes(className)) {
+      if (cssClass) {
         Object.keys(cssClass).forEach(cssProp => {
           this.style(cssProp, cssClass[cssProp])
         })
       }
-    })
-  }
-  on(evt, func) {
-    this.element.addEventListener(evt, func)
-  }
-  select(selector, refresh) {
-    let selectorParts = selector.split("#")
-    selector = selectorParts[selectorParts.length - 1]
-    let cached = this.selectionCache[selector]
-    if (!cached || refresh) {
-      let selectionObj = {}
-      searchTree(this, selector, selectionObj)
-      this.selectionCache[selector] = selectionObj.selection
-      return selectionObj.selection
-    } else {
-      return cached
     }
-  }
-  init() {
-    if (this.parentWrapper && this.parentWrapper.traits) Object.keys(this.parentWrapper.traits).forEach(traitKey => {
-      if (this.traits[traitKey] && this.parentWrapper.traits[traitKey]) {
-        this.traits[traitKey] = mergeDeep(this.traits[traitKey], this.parentWrapper.traits[traitKey])
-      } else {
-        this.traits[traitKey] = this.parentWrapper.traits[traitKey]
-      }
-    })
-    if (this.parentWrapper && this.parentWrapper.cssClasses) Object.keys(this.parentWrapper.cssClasses).forEach(cssClassName => {
-      if (this.cssClasses[cssClassName] && this.parentWrapper.cssClasses[cssClassName]) {
-        this.cssClasses[cssClassName] = mergeDeep(this.cssClasses[cssClassName], this.parentWrapper.cssClasses[cssClassName])
-      } else {
-        this.cssClasses[cssClassName] = this.parentWrapper.cssClasses[cssClassName]
-      }
-    })
-    this.children.forEach(childWrapper => {
-      if (this.traits) childWrapper.traits = this.traits
-      if (this.cssClasses) childWrapper.cssClasses = this.cssClasses
-    })
-    Object.keys(this.cssClasses).forEach(className => {
-      const cssClass = this.cssClasses[className]
-      if (this.classes.includes(className)) {
+    setID(id) {
+      this.element.id = id
+    }
+    removeClass(className) {
+      this.classes = this.classes.filter(e => e !== className)
+      this.element.classList.remove(className)
+      let cssClass = this.cssClasses[className]
+      if (cssClass) {
         Object.keys(cssClass).forEach(cssProp => {
-          this.style(cssProp, cssClass[cssProp])
+          this.style(cssProp, "")
         })
-      }
-    })
-    if (this.ready && this.ready !== true) {
-      if (typeof this.ready == "function" && !this.readyComplete.has(this.ready)) {
-        this.readyComplete.add(this.ready)
-        this.ready(this)
-        this.ready = true
-      } else if (Array.isArray(this.ready)) {
-        this.ready.forEach(func => {
-          if (!this.readyComplete.has(func)) {
-            this.readyComplete.add(func)
-            func(this)
+        Object.keys(this.cssClasses).forEach(className => {
+          cssClass = this.cssClasses[className]
+          if (this.classes.includes(className)) {
+            Object.keys(cssClass).forEach(cssProp => {
+              this.style(cssProp, cssClass[cssProp])
+            })
           }
         })
-        this.ready = true
-      } else {
-        throw "bad ready func"
       }
     }
-    if (this.callback) this.callback(this)
-    return this
-  }
-  appendTo(elementWrapper) {
-    let element
-    if (elementWrapper.nodeName) element = elementWrapper
-    else {
-      element = elementWrapper.element
-      this.parent = element
-      this.parentWrapper = elementWrapper
-      elementWrapper.children.push(this)
+    on(evt, func) {
+      if (Array.isArray(evt)) {
+        evt.forEach(str => {
+          this.element.addEventListener(str, func)
+        })
+      } else {
+        this.element.addEventListener(evt, func)
+      }
     }
-    element.appendChild(this.element)
-    return this.init()
-  }
-  append(elementWrapper) {
-    let element
-    let wrapped = false
-    if (elementWrapper.nodeName) element = elementWrapper
-    else {
-      wrapped = true
-      element = elementWrapper.element
-      elementWrapper.parent = this.element
-      elementWrapper.parentWrapper = this
-      this.children.push(elementWrapper)
+    addEventListener(event, func) {
+      this.element.addEventListener(event, func)
     }
-    this.element.appendChild(element)
-    elementWrapper.init()
-    return elementWrapper
+    select(selector, refresh = false) {
+      let selectorParts = selector.split("#")
+      selector = selectorParts[selectorParts.length - 1]
+      let cached = this.selectionCache[selector]
+      if (!cached || refresh) {
+        let selectionObj = {}
+        searchTree(this, selector, selectionObj)
+        this.selectionCache[selector] = selectionObj.selection
+        return selectionObj.selection
+      } else {
+        return cached
+      }
+    }
+    init() {
+      if (this.parentWrapper && this.parentWrapper.traits) Object.keys(this.parentWrapper.traits).forEach(traitKey => {
+        if (this.traits[traitKey] && this.parentWrapper.traits[traitKey]) {
+          this.traits[traitKey] = mergeDeep(this.traits[traitKey], this.parentWrapper.traits[traitKey])
+        } else {
+          this.traits[traitKey] = this.parentWrapper.traits[traitKey]
+        }
+      })
+      if (this.parentWrapper && this.parentWrapper.cssClasses) Object.keys(this.parentWrapper.cssClasses).forEach(cssClassName => {
+        if (this.cssClasses[cssClassName] && this.parentWrapper.cssClasses[cssClassName]) {
+          this.cssClasses[cssClassName] = mergeDeep(this.cssClasses[cssClassName], this.parentWrapper.cssClasses[cssClassName])
+        } else {
+          this.cssClasses[cssClassName] = this.parentWrapper.cssClasses[cssClassName]
+        }
+      })
+      this.children.forEach(childWrapper => {
+        if (this.traits) childWrapper.traits = this.traits
+        if (this.cssClasses) childWrapper.cssClasses = this.cssClasses
+      })
+      Object.keys(this.cssClasses).forEach(className => {
+        const cssClass = this.cssClasses[className]
+        if (this.classes.includes(className)) {
+          Object.keys(cssClass).forEach(cssProp => {
+            this.style(cssProp, cssClass[cssProp])
+          })
+        }
+      })
+      if (this.ready && this.ready !== true) {
+        if (typeof this.ready == "function" && !this.readyComplete.has(this.ready)) {
+          this.readyComplete.add(this.ready)
+          this.ready(this)
+          this.ready = true
+        } else if (Array.isArray(this.ready)) {
+          this.ready.forEach(func => {
+            if (!this.readyComplete.has(func)) {
+              this.readyComplete.add(func)
+              func(this)
+            }
+          })
+          this.ready = true
+        } else {
+          throw "bad ready func"
+        }
+      }
+      if (this.callback) this.callback(this)
+      return this
+    }
+    appendTo(elementWrapper) {
+      let element
+      if (elementWrapper.nodeName) element = elementWrapper
+      else {
+        element = elementWrapper.element
+        this.parent = element
+        this.parentWrapper = elementWrapper
+        elementWrapper.children.push(this)
+      }
+      element.appendChild(this.element)
+      return this.init()
+    }
+    append(elementWrapper) {
+      let element, wrapped = false
+      if (elementWrapper.nodeName) element = elementWrapper
+      else {
+        wrapped = true
+        element = elementWrapper.element
+        elementWrapper.parent = this.element
+        elementWrapper.parentWrapper = this
+        this.children.push(elementWrapper)
+      }
+      this.element.appendChild(element)
+      elementWrapper.init()
+      return elementWrapper
+    }
   }
-}
+  return { Publisher, Element }
+})()
