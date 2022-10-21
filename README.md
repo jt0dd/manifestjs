@@ -2,7 +2,6 @@
 
 My focus in building Manifest.js (which is under 500 lines of code) was to:
 
-- 
 - *Loosely* couple distinct elements in a web application.
 - *Tightly* couple each element of the UI with the code dictating its style and behavior.
 - Avoiding the need to manage a triad of HTML, JS, and CSS files.
