@@ -2,31 +2,19 @@
 
 My focus in building Manifest.js (which is under 500 lines of code) was to:
 
-- Tightly couple each element of the UI with the code dictating its style and behavior,
-- Looseley coupled modular design overall,
-- Avoid the need to manage multiple HTML or CSS files,
-- No HTML multiline strings within the JS,
-- No weird HTML JavaScript hybrids involved,
+- 
+- *Loosely* couple distinct elements in a web application.
+- *Tightly* couple each element of the UI with the code dictating its style and behavior.
+- Avoiding the need to manage a triad of HTML, JS, and CSS files.
+- No weird HTML JavaScript hybrids involved.
 - Just JavaScript.
 
-## Why another web app framework?
+Goals: 
 
-Rather than explain the difference, I'll show why I felt this framework design was more to my preference for building single-page web applications.
-Consider this iOS Messenger clone:
-
-![iOS messenger](https://www.iosapptemplates.com/wp-content/uploads/2018/09/chat-iphone-app-template-firebase-swift.png)
-
-To compare Manifest.js to top web app frameworks **Vue.js**, **React.js**, and **Angular.js**, above you'll find working replicas of this UI built with each:
-
-- Vue.js
-
-- React.js
-
-- Angular.js
-
-- Manifest.js
-
-But first...
+- Integrate the pub-sub pattern more natively into the Element module.
+- Convert to TypeScript.
+- Improve code documentation.
+- Polish / prune some of the older ideas based on lessons learned using the framework.
 
 ## Basic Usage
 
